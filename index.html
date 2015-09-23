@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Speech Bubbles</title>
+	<link rel="stylesheet" type="text/css" href="stylesheet.css">
+</head>
+<body>
+<canvas id="canvas"></canvas>
+
+<script type="text/javascript">
+	var canvas;
+	var width = 600;
+	var height = 600;
+
+	function main () {
+		canvas = document.getElementById('canvas');
+		canvas.width = width;
+		canvas.height = height;
+	}
+
+	window.onload = main;
+</script>
+
+<script type="text/javascript" src="SpeechBubble.js"></script>
+</body>
+</html>
