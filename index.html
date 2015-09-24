@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta charset="utf-8" />
 <html>
 <head>
 	<title>Speech Bubbles</title>
@@ -8,7 +9,7 @@
 <canvas id="canvas"></canvas>
 
 <script type="text/javascript">
-	var canvas;
+	var canvas, speechBubble, mouse;
 	var width = 600;
 	var height = 600;
 
@@ -16,11 +17,27 @@
 		canvas = document.getElementById('canvas');
 		canvas.width = width;
 		canvas.height = height;
+
+		mouse = new LibraryMouse(canvas);
+		mouse.addEventListener("mousemove", onMouseMove);
+		
+		speechBubble = new SpeechBubble(canvas.getContext("2d"));
+
+		speechBubble.draw();
+	}
+
+	function onMouseMove()
+	{
+		speechBubble.target.x = mouse.x;
+		speechBubble.target.y = mouse.y;
+		canvas.getContext("2d").clearRect(0, 0, width, height);
+		speechBubble.draw();
 	}
 
 	window.onload = main;
 </script>
 
+<script type="text/javascript" src="LibraryMouse.js"></script>
 <script type="text/javascript" src="SpeechBubble.js"></script>
 </body>
 </html>
