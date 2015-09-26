@@ -3,52 +3,52 @@
 
 function SpeechBubble(context) {
 	this.context = context;
-	this.speechBounds = new Bounds(10, 10, 200, 100);
+	this.panelBounds = new Bounds(10, 10, 200, 100);
 	this.target = {x: 100, y: 300};
 }
 
 SpeechBubble.prototype.draw = function() {
 	this.context.strokeStyle = "#000";
 	this.context.beginPath();
-	this.context.moveTo(this.speechBounds.left, this.speechBounds.top);
-	this.context.lineTo(this.speechBounds.left + this.speechBounds.width, this.speechBounds.top);
-	this.context.lineTo(this.speechBounds.left + this.speechBounds.width, this.speechBounds.top + this.speechBounds.height);
-	this.context.lineTo(this.speechBounds.left, this.speechBounds.top + this.speechBounds.height);
-	this.context.lineTo(this.speechBounds.left, this.speechBounds.top);
+	this.context.moveTo(this.panelBounds.left, this.panelBounds.top);
+	this.context.lineTo(this.panelBounds.left + this.panelBounds.width, this.panelBounds.top);
+	this.context.lineTo(this.panelBounds.left + this.panelBounds.width, this.panelBounds.top + this.panelBounds.height);
+	this.context.lineTo(this.panelBounds.left, this.panelBounds.top + this.panelBounds.height);
+	this.context.lineTo(this.panelBounds.left, this.panelBounds.top);
 	this.context.stroke();
 	this.context.closePath();
 
 	this.context.strokeStyle = "#F00";
 	this.context.beginPath();
-	this.context.moveTo(this.speechBounds.getCenter().x, this.speechBounds.getCenter().y);
+	this.context.moveTo(this.panelBounds.getCenter().x, this.panelBounds.getCenter().y);
 	this.context.lineTo(this.getTargetIntersectionPoint().x, this.getTargetIntersectionPoint().y);
 	this.context.stroke();
 	this.context.closePath();
 
 	this.context.fillStyle = "#0F0";
 	this.context.fillRect(this.target.x, this.target.y, 5, 5);
-	// this.context.fillRect(this.speechBounds.getCenter().x, this.speechBounds.getCenter().y, 5, 5);
+	// this.context.fillRect(this.panelBounds.getCenter().x, this.panelBounds.getCenter().y, 5, 5);
 	// this.context.fillRect(this.getTargetIntersectionPoint().x, this.getTargetIntersectionPoint().y, 5, 5);
 };
 
 SpeechBubble.prototype.getTargetIntersectionPoint = function() {
 	var x = 0, y = 0;
 
-	var boundsCenter = this.speechBounds.getCenter();
+	var boundsCenter = this.panelBounds.getCenter();
 	var relativeTargetX = this.target.x - boundsCenter.x;
 	var relativeTargetY = this.target.y - boundsCenter.y;
 
 	var targetAspectRatio = relativeTargetX / relativeTargetY;
-	var boundsAspectRatio = this.speechBounds.width / this.speechBounds.height;
+	var boundsAspectRatio = this.panelBounds.width / this.panelBounds.height;
 
 	if (Math.abs(targetAspectRatio) < Math.abs(boundsAspectRatio))
 	{
-		y = this.speechBounds.height/2 * Math.sign(relativeTargetY);
+		y = this.panelBounds.height/2 * Math.sign(relativeTargetY);
 		x = relativeTargetX * (y / relativeTargetY);
 	}
 	else
 	{
-		x = this.speechBounds.width/2 * Math.sign(relativeTargetX);
+		x = this.panelBounds.width/2 * Math.sign(relativeTargetX);
 		y = relativeTargetY * (x / relativeTargetX);
 	}
 
@@ -56,6 +56,25 @@ SpeechBubble.prototype.getTargetIntersectionPoint = function() {
 	y += boundsCenter.y;
 
 	return {x: x, y: y};
+};
+
+SpeechBubble.prototype.TailLocation = function() {
+	var side = "";
+	
+	var boundsCenter = this.panelBounds.getCenter();
+	var relativeTargetX = this.target.x - boundsCenter.x;
+	var relativeTargetY = this.target.y - boundsCenter.y;
+	var targetAspectRatio = relativeTargetX / relativeTargetY;
+	var boundsAspectRatio = this.panelBounds.width / this.panelBounds.height;
+
+	if (Math.abs(targetAspectRatio) < Math.abs(boundsAspectRatio)){
+		side = (Math.sign(relativeTargetY) > 0) ? "bottom" : "top";
+	}
+	else {
+		side = (Math.sign(relativeTargetX) > 0) ? "right" : "left";
+	}
+
+	return side;
 };
 
 function Bounds(top, left, width, height){

@@ -32,6 +32,8 @@
 		speechBubble.target.y = mouse.y;
 		canvas.getContext("2d").clearRect(0, 0, width, height);
 		speechBubble.draw();
+
+		console.log(speechBubble.TailLocation());
 	}
 
 	window.onload = main;
