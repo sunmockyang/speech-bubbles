@@ -22,14 +22,13 @@
 		mouse.addEventListener("mousemove", onMouseMove);
 		
 		speechBubble = new SpeechBubble(canvas.getContext("2d"));
+		speechBubble.setTarget(mouse);
 
 		speechBubble.draw();
 	}
 
 	function onMouseMove()
 	{
-		speechBubble.target.x = mouse.x;
-		speechBubble.target.y = mouse.y;
 		canvas.getContext("2d").clearRect(0, 0, width, height);
 		speechBubble.draw();
 

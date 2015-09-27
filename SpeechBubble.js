@@ -18,6 +18,10 @@ SpeechBubble.clamp = function(val, min, max) {
 	return Math.min(Math.max(val, min), max);
 };
 
+SpeechBubble.prototype.setTarget = function(target) {
+	this.target = target;
+};
+
 SpeechBubble.prototype.draw = function() {
 	var tailLocation = this.getTailLocation();
 
