@@ -44,7 +44,7 @@ SpeechBubble.prototype.draw = function() {
 };
 
 SpeechBubble.prototype.drawPanelWall = function(panelSide, tailLocation, toX, toY) {
-	if (panelSide == tailLocation.side) {
+	if (panelSide == tailLocation.side && !this.panelBounds.inBounds(this.target.x, this.target.y)) {
 		var baseWidth = this.tailBaseWidth;
 		if (panelSide == SpeechBubble.TOP_SIDE || panelSide == SpeechBubble.RIGHT_SIDE) {
 			baseWidth *= -1;
