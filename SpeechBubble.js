@@ -6,6 +6,7 @@ function SpeechBubble(context) {
 	this.panelBounds = new Bounds(100, 100, 200, 100);
 	this.target = {x: 100, y: 300};
 	this.tailBaseWidth = 10;
+	this.cornerRadius = 10;
 }
 
 SpeechBubble.TOP_SIDE = "SPEECH_BUBBLE_TOP";
@@ -22,11 +23,21 @@ SpeechBubble.prototype.draw = function() {
 
 	this.context.strokeStyle = "#000";
 	this.context.beginPath();
-	this.context.moveTo(this.panelBounds.left, this.panelBounds.top);
-	this.drawPanelWall(SpeechBubble.TOP_SIDE, tailLocation, this.panelBounds.left + this.panelBounds.width, this.panelBounds.top);
-	this.drawPanelWall(SpeechBubble.RIGHT_SIDE, tailLocation, this.panelBounds.left + this.panelBounds.width, this.panelBounds.top + this.panelBounds.height);
-	this.drawPanelWall(SpeechBubble.BOTTOM_SIDE, tailLocation, this.panelBounds.left, this.panelBounds.top + this.panelBounds.height);
-	this.drawPanelWall(SpeechBubble.LEFT_SIDE, tailLocation, this.panelBounds.left, this.panelBounds.top);
+	this.context.moveTo(this.panelBounds.left + this.cornerRadius, this.panelBounds.top);
+
+	var cornerAngle = 1.5 * Math.PI;
+
+	this.drawPanelWall(SpeechBubble.TOP_SIDE, tailLocation, this.panelBounds.right - this.cornerRadius, this.panelBounds.top);
+	this.drawPanelCorners(this.panelBounds.right - this.cornerRadius, this.panelBounds.top + this.cornerRadius, cornerAngle, cornerAngle += 0.5 * Math.PI);
+
+	this.drawPanelWall(SpeechBubble.RIGHT_SIDE, tailLocation, this.panelBounds.right, this.panelBounds.bottom - this.cornerRadius);
+	this.drawPanelCorners(this.panelBounds.right - this.cornerRadius, this.panelBounds.bottom - this.cornerRadius, cornerAngle, cornerAngle += 0.5 * Math.PI);
+
+	this.drawPanelWall(SpeechBubble.BOTTOM_SIDE, tailLocation, this.panelBounds.left + this.cornerRadius, this.panelBounds.bottom);
+	this.drawPanelCorners(this.panelBounds.left + this.cornerRadius, this.panelBounds.bottom - this.cornerRadius, cornerAngle, cornerAngle += 0.5 * Math.PI);
+
+	this.drawPanelWall(SpeechBubble.LEFT_SIDE, tailLocation, this.panelBounds.left, this.panelBounds.top + this.cornerRadius);
+	this.drawPanelCorners(this.panelBounds.left + this.cornerRadius, this.panelBounds.top + this.cornerRadius, cornerAngle, cornerAngle += 0.5 * Math.PI);
 
 	this.context.stroke();
 	this.context.closePath();
@@ -52,6 +63,10 @@ SpeechBubble.prototype.drawPanelWall = function(panelSide, tailLocation, toX, to
 	}
 
 	this.context.lineTo(toX, toY);
+};
+
+SpeechBubble.prototype.drawPanelCorners = function(x, y, startAngle, endAngle) {
+	this.context.arc(x, y, this.cornerRadius, startAngle, endAngle);
 };
 
 SpeechBubble.prototype.drawDebug = function() {
@@ -92,8 +107,8 @@ SpeechBubble.prototype.getTailLocation = function() {
 		side = (Math.sign(relativeTargetX) > 0) ? SpeechBubble.RIGHT_SIDE : SpeechBubble.LEFT_SIDE;
 	}
 
-	x = SpeechBubble.clamp(x, this.tailBaseWidth - this.panelBounds.width/2, this.panelBounds.width/2 - this.tailBaseWidth);
-	y = SpeechBubble.clamp(y, this.tailBaseWidth - this.panelBounds.height/2, this.panelBounds.height/2 - this.tailBaseWidth);
+	x = SpeechBubble.clamp(x, this.cornerRadius + this.tailBaseWidth - this.panelBounds.width/2, this.panelBounds.width/2 - this.tailBaseWidth - this.cornerRadius);
+	y = SpeechBubble.clamp(y, this.cornerRadius + this.tailBaseWidth - this.panelBounds.height/2, this.panelBounds.height/2 - this.tailBaseWidth - this.cornerRadius);
 
 	x += boundsCenter.x;
 	y += boundsCenter.y;
@@ -106,6 +121,16 @@ function Bounds(top, left, width, height){
 	this.left = (left) ? left : 0;
 	this.width = (width) ? width : 0;
 	this.height = (height) ? height : 0;
+
+	this.right = this.left + this.width;
+	this.bottom = this.top + this.height;
+};
+
+Bounds.prototype.move = function(top, left) {
+	this.top = top;
+	this.left = left;
+	this.right = this.left + this.width;
+	this.bottom = this.top + this.height;
 };
 
 Bounds.prototype.getCenter = function() {
