@@ -1,12 +1,24 @@
 // SpeechBubble.js
 // Sunmock Yang, September 2015
 
+/*
+Future plans
+- Text styling
+- Text justification
+ */
+
 function SpeechBubble(context) {
 	this.context = context;
-	this.panelBounds = new Bounds(100, 100, 200, 100);
+	this.panelBounds = new Bounds(100, 100, 300, 100);
 	this.target = {x: 100, y: 300};
 	this.tailBaseWidth = 10;
-	this.cornerRadius = 10;
+	this.cornerRadius = 5;
+
+	this.maxBounds = {x: 100, y: 50};
+	this.text = "Hello you guys, my name is Sunmock and I am testing out this new dynamic speech bubble I made. The Quick Brown Fox Jumps Over The Lazy Dog.";
+	this.padding = 5;
+	this.lineHeight = 30;
+	this.font = "20px Georgia";
 }
 
 SpeechBubble.TOP_SIDE = "SPEECH_BUBBLE_TOP";
@@ -23,6 +35,9 @@ SpeechBubble.prototype.setTarget = function(target) {
 };
 
 SpeechBubble.prototype.draw = function() {
+	var panelHeight = this.drawText();
+	this.panelBounds.setSize(this.panelBounds.width, panelHeight);
+
 	var tailLocation = this.getTailLocation();
 
 	this.context.strokeStyle = "#000";
@@ -45,6 +60,40 @@ SpeechBubble.prototype.draw = function() {
 
 	this.context.stroke();
 	this.context.closePath();
+};
+
+SpeechBubble.prototype.drawText = function() {
+	var words = this.text.split(" ");
+
+	if (words.length == 0)
+		return;
+
+	this.context.font = this.font;
+	this.context.textBaseline = "hanging";
+	var lines = [words[0]];
+	var lineLength = this.padding * 2 + this.context.measureText(words[0]).width;
+
+	for (var i = 1; i < words.length; i++) {
+		var lineNum = lines.length - 1;
+		var wordLength = this.context.measureText(" " + words[i]).width;
+
+		if (lineLength + wordLength < this.panelBounds.width - this.padding * 2) {
+			lines[lineNum] += " " + words[i];
+			lineLength += wordLength;
+		}
+		else {
+			lines.push(words[i]);
+			lineLength = this.padding * 2 + this.context.measureText(words[i]).width;
+		}
+	};
+
+	var height = this.padding;
+	for (var i = 0; i < lines.length; i++) {
+		this.context.fillText(lines[i], this.panelBounds.left + this.padding, this.panelBounds.top +height);
+		height += this.lineHeight;
+	};
+
+	return height;
 };
 
 SpeechBubble.prototype.drawPanelWall = function(panelSide, tailLocation, toX, toY) {
@@ -70,7 +119,9 @@ SpeechBubble.prototype.drawPanelWall = function(panelSide, tailLocation, toX, to
 };
 
 SpeechBubble.prototype.drawPanelCorners = function(x, y, startAngle, endAngle) {
-	this.context.arc(x, y, this.cornerRadius, startAngle, endAngle);
+	if (this.cornerRadius > 0) {
+		this.context.arc(x, y, this.cornerRadius, startAngle, endAngle);
+	}
 };
 
 SpeechBubble.prototype.drawDebug = function() {
@@ -130,9 +181,16 @@ function Bounds(top, left, width, height){
 	this.bottom = this.top + this.height;
 };
 
-Bounds.prototype.move = function(top, left) {
+Bounds.prototype.move = function(left, top) {
 	this.top = top;
 	this.left = left;
+	this.right = this.left + this.width;
+	this.bottom = this.top + this.height;
+};
+
+Bounds.prototype.setSize = function(width, height) {
+	this.width = width;
+	this.height = height;
 	this.right = this.left + this.width;
 	this.bottom = this.top + this.height;
 };
