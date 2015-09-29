@@ -20,6 +20,9 @@ function SpeechBubble(context) {
 	this.lineSpacing = 5;
 	this.font = "Georgia";
 	this.fontSize = 20;
+	this.fontColor = "#D00";
+	this.panelBorderColor = "#333";
+	this.panelFillColor = "#0F0"
 }
 
 SpeechBubble.TOP_SIDE = "SPEECH_BUBBLE_TOP";
@@ -36,12 +39,13 @@ SpeechBubble.prototype.setTarget = function(target) {
 };
 
 SpeechBubble.prototype.draw = function() {
-	var panelHeight = this.drawText();
-	this.panelBounds.setSize(this.panelBounds.width, panelHeight);
+	var formattedText = this.formatText();
+	this.panelBounds.setSize(this.panelBounds.width, formattedText.height);
 
 	var tailLocation = this.getTailLocation();
 
-	this.context.strokeStyle = "#000";
+	this.context.strokeStyle = this.panelBorderColor;
+	this.context.fillStyle = this.panelFillColor;
 	this.context.beginPath();
 	this.context.moveTo(this.panelBounds.left + this.cornerRadius, this.panelBounds.top);
 
@@ -59,18 +63,21 @@ SpeechBubble.prototype.draw = function() {
 	this.drawPanelWall(SpeechBubble.LEFT_SIDE, tailLocation, this.panelBounds.left, this.panelBounds.top + this.cornerRadius);
 	this.drawPanelCorners(this.panelBounds.left + this.cornerRadius, this.panelBounds.top + this.cornerRadius, cornerAngle, cornerAngle += 0.5 * Math.PI);
 
+	this.context.fill();
 	this.context.stroke();
 	this.context.closePath();
+
+	this.drawText(formattedText.lines);
 };
 
-SpeechBubble.prototype.drawText = function() {
+SpeechBubble.prototype.formatText = function() {
 	var words = this.text.split(" ");
 
 	if (words.length == 0)
 		return;
 
 	this.context.font = this.fontSize + "px " + this.font;
-	this.context.textBaseline = "hanging";
+
 	var lines = [words[0]];
 	var lineLength = this.padding * 2 + this.cornerRadius * 2 + this.context.measureText(words[0]).width;
 
@@ -88,18 +95,24 @@ SpeechBubble.prototype.drawText = function() {
 		}
 	};
 
-	var height = this.padding + this.cornerRadius;
-	for (var i = 0; i < lines.length; i++) {
-		this.context.fillText(lines[i], this.panelBounds.left + this.padding + this.cornerRadius, this.panelBounds.top + this.padding + height);
-		height += this.fontSize;
+	var height = this.padding * 2 + this.cornerRadius * 2 + this.fontSize * lines.length + this.lineSpacing * (lines.length - 1);
 
-		if (i != lines.length - 1) {
-			height += this.lineSpacing
-		}
+	return {
+		height: height,
+		lines: lines
 	};
-	height += this.padding + this.cornerRadius;
+};
 
-	return height;
+SpeechBubble.prototype.drawText = function(lines) {
+	this.context.font = this.fontSize + "px " + this.font;
+	this.context.fillStyle = this.fontColor;
+	this.context.textBaseline = "hanging";
+
+	var lineOffset = this.padding + this.cornerRadius;
+	for (var i = 0; i < lines.length; i++) {
+		this.context.fillText(lines[i], this.panelBounds.left + this.padding + this.cornerRadius, this.panelBounds.top + this.padding + lineOffset);
+		lineOffset += this.fontSize + this.lineSpacing;
+	};
 };
 
 SpeechBubble.prototype.drawPanelWall = function(panelSide, tailLocation, toX, toY) {
