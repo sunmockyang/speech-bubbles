@@ -17,7 +17,7 @@ function SpeechBubble(context) {
 	this.maxBounds = {x: 100, y: 50};
 	this.text = "Hello you guys, my name is Sunmock and I am testing out this new dynamic speech bubble I made. The Quick Brown Fox Jumps Over The Lazy Dog.";
 	this.padding = 0;
-	this.lineHeight = 30;
+	this.lineSpacing = 5;
 	this.font = "Georgia";
 	this.fontSize = 20;
 }
@@ -91,7 +91,11 @@ SpeechBubble.prototype.drawText = function() {
 	var height = this.padding + this.cornerRadius;
 	for (var i = 0; i < lines.length; i++) {
 		this.context.fillText(lines[i], this.panelBounds.left + this.padding + this.cornerRadius, this.panelBounds.top + this.padding + height);
-		height += this.lineHeight;
+		height += this.fontSize;
+
+		if (i != lines.length - 1) {
+			height += this.lineSpacing
+		}
 	};
 	height += this.padding + this.cornerRadius;
 
