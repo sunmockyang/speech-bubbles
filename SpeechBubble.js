@@ -20,9 +20,9 @@ function SpeechBubble(context) {
 	this.lineSpacing = 5;
 	this.font = "Georgia";
 	this.fontSize = 20;
-	this.fontColor = "#D00";
+	this.fontColor = "#900";
 	this.panelBorderColor = "#333";
-	this.panelFillColor = "#0F0"
+	this.panelFillColor = "#FFF"
 }
 
 SpeechBubble.TOP_SIDE = "SPEECH_BUBBLE_TOP";
