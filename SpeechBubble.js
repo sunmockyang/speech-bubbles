@@ -12,13 +12,14 @@ function SpeechBubble(context) {
 	this.panelBounds = new Bounds(100, 100, 300, 100);
 	this.target = {x: 100, y: 300};
 	this.tailBaseWidth = 10;
-	this.cornerRadius = 5;
+	this.cornerRadius = 35;
 
 	this.maxBounds = {x: 100, y: 50};
 	this.text = "Hello you guys, my name is Sunmock and I am testing out this new dynamic speech bubble I made. The Quick Brown Fox Jumps Over The Lazy Dog.";
-	this.padding = 5;
+	this.padding = 0;
 	this.lineHeight = 30;
-	this.font = "20px Georgia";
+	this.font = "Georgia";
+	this.fontSize = 20;
 }
 
 SpeechBubble.TOP_SIDE = "SPEECH_BUBBLE_TOP";
@@ -68,10 +69,10 @@ SpeechBubble.prototype.drawText = function() {
 	if (words.length == 0)
 		return;
 
-	this.context.font = this.font;
+	this.context.font = this.fontSize + "px " + this.font;
 	this.context.textBaseline = "hanging";
 	var lines = [words[0]];
-	var lineLength = this.padding * 2 + this.context.measureText(words[0]).width;
+	var lineLength = this.padding * 2 + this.cornerRadius * 2 + this.context.measureText(words[0]).width;
 
 	for (var i = 1; i < words.length; i++) {
 		var lineNum = lines.length - 1;
@@ -83,15 +84,16 @@ SpeechBubble.prototype.drawText = function() {
 		}
 		else {
 			lines.push(words[i]);
-			lineLength = this.padding * 2 + this.context.measureText(words[i]).width;
+			lineLength = this.padding * 2 + this.cornerRadius * 2 + this.context.measureText(words[i]).width;
 		}
 	};
 
-	var height = this.padding;
+	var height = this.padding + this.cornerRadius;
 	for (var i = 0; i < lines.length; i++) {
-		this.context.fillText(lines[i], this.panelBounds.left + this.padding, this.panelBounds.top +height);
+		this.context.fillText(lines[i], this.panelBounds.left + this.padding + this.cornerRadius, this.panelBounds.top + this.padding + height);
 		height += this.lineHeight;
 	};
+	height += this.padding + this.cornerRadius;
 
 	return height;
 };
