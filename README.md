@@ -7,6 +7,7 @@ A library to draw dynamic speech bubbles in canvas.
 - Font size
 - Font colour
 - Line spacing
+- Text align
 - Panel size
 - Panel padding
 - Panel fill colour
@@ -16,5 +17,4 @@ A library to draw dynamic speech bubbles in canvas.
 - Rounded corners + corner radius
 
 ## Future plans
-- Add text alignment options
 - Add different corner shapes
