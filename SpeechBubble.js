@@ -3,8 +3,7 @@
 
 /*
 Future plans
-- Text styling
-- Text justification
+- Rounded tail
  */
 
 function SpeechBubble(context) {
@@ -14,7 +13,6 @@ function SpeechBubble(context) {
 	this.tailBaseWidth = 10;
 	this.cornerRadius = 35;
 
-	this.maxBounds = {x: 100, y: 50};
 	this.text = "Hello you guys, my name is Sunmock and I am testing out this new dynamic speech bubble I made. The Quick Brown Fox Jumps Over The Lazy Dog.";
 	this.padding = 0;
 	this.lineSpacing = 5;
@@ -23,12 +21,17 @@ function SpeechBubble(context) {
 	this.fontColor = "#900";
 	this.panelBorderColor = "#333";
 	this.panelFillColor = "#FFF"
+	this.textAlign = SpeechBubble.ALIGN_LEFT;
 }
 
 SpeechBubble.TOP_SIDE = "SPEECH_BUBBLE_TOP";
 SpeechBubble.BOTTOM_SIDE = "SPEECH_BUBBLE_BOTTOM";
 SpeechBubble.LEFT_SIDE = "SPEECH_BUBBLE_LEFT";
 SpeechBubble.RIGHT_SIDE = "SPEECH_BUBBLE_RIGHT";
+
+SpeechBubble.ALIGN_LEFT = "SPEECH_BUBBLE_ALIGN_LEFT";
+SpeechBubble.ALIGN_RIGHT = "SPEECH_BUBBLE_ALIGN_RIGHT";
+SpeechBubble.ALIGN_CENTER = "SPEECH_BUBBLE_ALIGN_CENTER";
 
 SpeechBubble.clamp = function(val, min, max) {
 	return Math.min(Math.max(val, min), max);
@@ -108,10 +111,22 @@ SpeechBubble.prototype.drawText = function(lines) {
 	this.context.fillStyle = this.fontColor;
 	this.context.textBaseline = "hanging";
 
-	var lineOffset = this.padding + this.cornerRadius;
+	var verticalOffset = this.padding + this.cornerRadius;
+	var horizontalOffset = this.panelBounds.left + this.padding + this.cornerRadius;
+
 	for (var i = 0; i < lines.length; i++) {
-		this.context.fillText(lines[i], this.panelBounds.left + this.padding + this.cornerRadius, this.panelBounds.top + this.padding + lineOffset);
-		lineOffset += this.fontSize + this.lineSpacing;
+		switch (this.textAlign) {
+			case SpeechBubble.ALIGN_RIGHT:
+				horizontalOffset = this.panelBounds.left + this.panelBounds.width - (this.padding + this.cornerRadius) - this.context.measureText(lines[i]).width;
+			break;
+
+			case SpeechBubble.ALIGN_CENTER:
+				horizontalOffset = this.panelBounds.left + (this.panelBounds.width - this.context.measureText(lines[i]).width) / 2;
+			break;
+		}
+
+		this.context.fillText(lines[i], horizontalOffset, this.panelBounds.top + this.padding + verticalOffset);
+		verticalOffset += this.fontSize + this.lineSpacing;
 	};
 };
 
