@@ -13,7 +13,7 @@ function SpeechBubble(context) {
 	this.tailBaseWidth = 10;
 	this.cornerRadius = 35;
 
-	this.text = "Hello you guys, my name is Sunmock and I am testing out this new dynamic speech bubble I made. The Quick Brown Fox Jumps Over The Lazy Dog.";
+	this.text = "";
 	this.padding = 0;
 	this.lineSpacing = 5;
 	this.font = "Georgia";
@@ -71,6 +71,7 @@ SpeechBubble.prototype.draw = function() {
 	this.context.closePath();
 
 	this.drawText(formattedText.lines);
+	// this.drawDebug();
 };
 
 SpeechBubble.prototype.formatText = function() {

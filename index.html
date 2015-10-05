@@ -7,6 +7,10 @@
 </head>
 <body>
 <canvas id="canvas"></canvas>
+<br/>
+<textarea id="text" onkeyup="readText();">Hello you guys, my name is Sunmock and I am testing out this new dynamic speech bubble I made. The Quick Brown Fox Jumps Over The Lazy Dog.</textarea>
+<br/>
+<button onclick="resetText();">Reset</button>
 
 <script type="text/javascript">
 	var canvas, speechBubble, mouse;
@@ -19,20 +23,30 @@
 		canvas.height = height;
 
 		mouse = new LibraryMouse(canvas);
-		mouse.addEventListener("mousemove", onMouseMove);
+		mouse.addEventListener("mousemove", draw);
 		
 		speechBubble = new SpeechBubble(canvas.getContext("2d"));
 		speechBubble.setTarget(mouse);
+		readText();
 
 		speechBubble.draw();
 	}
 
-	function onMouseMove()
-	{
+	function draw() {
 		canvas.getContext("2d").clearRect(0, 0, width, height);
 		speechBubble.draw();
 
 		// console.log(speechBubble.getTailLocation());
+	}
+
+	function readText() {
+		speechBubble.text = document.getElementById("text").value;
+		draw();
+	}
+
+	function resetText () {
+		document.getElementById("text").value = "Hello you guys, my name is Sunmock and I am testing out this new dynamic speech bubble I made. The Quick Brown Fox Jumps Over The Lazy Dog.";
+		readText();
 	}
 
 	window.onload = main;
