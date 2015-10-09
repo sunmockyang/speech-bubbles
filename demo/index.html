@@ -18,30 +18,34 @@
 	var height = 600;
 
 	function main () {
+		// Setup canvas
 		canvas = document.getElementById('canvas');
 		canvas.width = width;
 		canvas.height = height;
 
+		// Setup mouse, run draw() everytime mousemove happens on canvas
 		mouse = new LibraryMouse(canvas);
 		mouse.addEventListener("mousemove", draw);
 		
+		// Setup SpeechBubble
 		speechBubble = new SpeechBubble(canvas.getContext("2d"));
 		speechBubble.setTarget(mouse);
 		readText();
-
-		speechBubble.draw();
-	}
-
-	function draw() {
-		canvas.getContext("2d").clearRect(0, 0, width, height);
-		speechBubble.draw();
-
-		// console.log(speechBubble.getTailLocation());
 	}
 
 	function readText() {
+		// Read text from textbox and set SpeechBubble content
 		speechBubble.text = document.getElementById("text").value;
+		
 		draw();
+	}
+
+	function draw() {
+		// Clear Canvas
+		canvas.getContext("2d").clearRect(0, 0, width, height);
+
+		// Draw SpeechBubble
+		speechBubble.draw();
 	}
 
 	function resetText () {
