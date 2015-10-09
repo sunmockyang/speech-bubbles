@@ -9,22 +9,38 @@ Future plans
 function SpeechBubble(context) {
 	this.context = context;
 
-	// Attributes
-	this.tailBaseWidth = 10;
+	// -- Attributes
+	
+	// Panel
+	this.panelBounds = new Bounds(100, 100, 300, 100);
 	this.cornerRadius = 15;
-	this.text = "";
 	this.padding = 0;
+	this.panelBorderColor = "#333";
+	this.panelFillColor = "rgba(0,0,0,0)";
+
+	// Tail
+	this.tailBaseWidth = 10;
+	this.tailStyle = SpeechBubble.TAIL_CURVED;
+	this.target = new SpeechBubble.Vector();
+	
+	// Text
+	this.text = "";
 	this.lineSpacing = 5;
 	this.font = "Georgia";
 	this.fontSize = 20;
 	this.fontColor = "#900";
-	this.panelBorderColor = "#333";
-	this.panelFillColor = "#FFF"
 	this.textAlign = SpeechBubble.ALIGN_LEFT;
 
 	// Utility
-	this.panelBounds = new Bounds(100, 100, 300, 100);
-	this.target = {x: 100, y: 300};
+	this.startTail = new SpeechBubble.BezierCurve(context, 20);
+	this.startTail.addPoint(new SpeechBubble.Vector());
+	this.startTail.addPoint(new SpeechBubble.Vector());
+	this.startTail.addPoint(this.target);
+
+	this.endTail = new SpeechBubble.BezierCurve(context, 20);
+	this.endTail.addPoint(this.target);
+	this.endTail.addPoint(new SpeechBubble.Vector());
+	this.endTail.addPoint(new SpeechBubble.Vector());
 };
 
 SpeechBubble.TOP_SIDE = {name: "SPEECH_BUBBLE_TOP", normalVector: {x: 0, y: -1}, drawVector: {x: 1, y: 0}};
@@ -36,9 +52,8 @@ SpeechBubble.ALIGN_LEFT = "SPEECH_BUBBLE_ALIGN_LEFT";
 SpeechBubble.ALIGN_RIGHT = "SPEECH_BUBBLE_ALIGN_RIGHT";
 SpeechBubble.ALIGN_CENTER = "SPEECH_BUBBLE_ALIGN_CENTER";
 
-SpeechBubble.clamp = function(val, min, max) {
-	return Math.min(Math.max(val, min), max);
-};
+SpeechBubble.TAIL_STRAIGHT = "SPEECH_BUBBLE_TAIL_STRAIGHT";
+SpeechBubble.TAIL_CURVED = "SPEECH_BUBBLE_TAIL_CURVED";
 
 SpeechBubble.prototype.setTarget = function(target) {
 	this.target = target;
@@ -149,29 +164,37 @@ SpeechBubble.prototype.drawPanelWall = function(panelSide, tailLocation, toX, to
 };
 
 SpeechBubble.prototype.drawTail = function(panelSide, start, end) {
-	this.context.lineTo(start.x, start.y);
-	this.context.lineTo(this.target.x, this.target.y);
-	this.context.lineTo(end.x, end.y);
+
+	if (this.tailStyle == SpeechBubble.TAIL_STRAIGHT)
+	{
+		this.context.lineTo(start.x, start.y);
+		this.context.lineTo(this.target.x, this.target.y);
+		this.context.lineTo(end.x, end.y);
+	}
+	else if (this.tailStyle == SpeechBubble.TAIL_CURVED)
+	{
+		var deltaVec = SpeechBubble.Utils.subVectors(this.target, this.getTailLocation());
+		deltaVec.x = deltaVec.x * panelSide.normalVector.x;
+		deltaVec.y = deltaVec.y * panelSide.normalVector.y;
+		var tailHalfLength = Math.pow(SpeechBubble.Utils.vectorMagnitude(deltaVec), 0.7);
+
+		// this.context.lineTo(start.x, start.y);
+		this.startTail.points[0] = start;
+		this.startTail.points[1] = SpeechBubble.Utils.addVectors(start, SpeechBubble.Utils.scaleVector(panelSide.normalVector, tailHalfLength));
+		this.startTail.points[2] = this.target;
+		this.startTail.draw();
+
+		this.endTail.points[0] = this.target;
+		this.endTail.points[1] = SpeechBubble.Utils.addVectors(end, SpeechBubble.Utils.scaleVector(panelSide.normalVector, tailHalfLength));
+		this.endTail.points[2] = end;
+		this.endTail.draw();
+	}
 };
 
 SpeechBubble.prototype.drawPanelCorners = function(x, y, startAngle, endAngle) {
 	if (this.cornerRadius > 0) {
 		this.context.arc(x, y, this.cornerRadius, startAngle, endAngle);
 	}
-};
-
-SpeechBubble.prototype.drawDebug = function() {
-	this.context.strokeStyle = "#F00";
-	this.context.beginPath();
-	this.context.moveTo(this.panelBounds.getCenter().x, this.panelBounds.getCenter().y);
-	this.context.lineTo(this.getTailLocation().x, this.getTailLocation().y);
-	this.context.stroke();
-	this.context.closePath();
-
-	this.context.fillStyle = "#0F0";
-	this.context.fillRect(this.target.x, this.target.y, 5, 5);
-	this.context.fillRect(this.panelBounds.getCenter().x, this.panelBounds.getCenter().y, 5, 5);
-	this.context.fillRect(this.getTailLocation().x, this.getTailLocation().y, 5, 5);
 };
 
 SpeechBubble.prototype.getTailLocation = function() {
@@ -191,7 +214,7 @@ SpeechBubble.prototype.getTailLocation = function() {
 		y = this.panelBounds.height/2 * Math.sign(relativeTargetY);
 		x = relativeTargetX * (y / relativeTargetY);
 		side = (Math.sign(relativeTargetY) > 0) ? SpeechBubble.BOTTOM_SIDE : SpeechBubble.TOP_SIDE;
-		x = SpeechBubble.clamp(x, this.cornerRadius + this.tailBaseWidth - this.panelBounds.width/2, this.panelBounds.width/2 - this.tailBaseWidth - this.cornerRadius);
+		x = SpeechBubble.Utils.clamp(x, this.cornerRadius + this.tailBaseWidth - this.panelBounds.width/2, this.panelBounds.width/2 - this.tailBaseWidth - this.cornerRadius);
 	}
 	else
 	{
@@ -199,9 +222,8 @@ SpeechBubble.prototype.getTailLocation = function() {
 		x = this.panelBounds.width/2 * Math.sign(relativeTargetX);
 		y = relativeTargetY * (x / relativeTargetX);
 		side = (Math.sign(relativeTargetX) > 0) ? SpeechBubble.RIGHT_SIDE : SpeechBubble.LEFT_SIDE;
-		y = SpeechBubble.clamp(y, this.cornerRadius + this.tailBaseWidth - this.panelBounds.height/2, this.panelBounds.height/2 - this.tailBaseWidth - this.cornerRadius);
+		y = SpeechBubble.Utils.clamp(y, this.cornerRadius + this.tailBaseWidth - this.panelBounds.height/2, this.panelBounds.height/2 - this.tailBaseWidth - this.cornerRadius);
 	}
-
 
 	x += boundsCenter.x;
 	y += boundsCenter.y;
@@ -209,7 +231,74 @@ SpeechBubble.prototype.getTailLocation = function() {
 	return {x: x, y: y, side:side};
 };
 
+SpeechBubble.prototype.drawDebug = function() {
+	this.context.strokeStyle = "#F00";
+	this.context.beginPath();
+	this.context.moveTo(this.panelBounds.getCenter().x, this.panelBounds.getCenter().y);
+	this.context.lineTo(this.getTailLocation().x, this.getTailLocation().y);
+	this.context.stroke();
+	this.context.closePath();
+
+	this.context.fillStyle = "#0F0";
+	this.debugSquare(this.target);
+	this.debugSquare(this.panelBounds.getCenter());
+	this.debugSquare(this.getTailLocation());
+};
+
+SpeechBubble.prototype.debugSquare = function(point) {
+	this.context.fillStyle = "#F00";
+	this.context.fillRect(point.x - 2, point.y - 2, 5, 5);
+};
+
+SpeechBubble.BezierCurve = function(context, resolution) {
+	this.context = context;
+	this.points = [];
+	this.resolution = resolution;
+};
+
+SpeechBubble.BezierCurve.prototype.addPoint = function(point) {
+	this.points.push(point);
+};
+
+SpeechBubble.BezierCurve.prototype.draw = function() {
+	for (var i = 0; i <= this.resolution; i++) {
+		var point = this.getPoint(i/this.resolution);
+		this.context.lineTo(point.x, point.y);
+	};
+};
+
+SpeechBubble.BezierCurve.prototype.getPoint = function(t) {
+	var point = new SpeechBubble.Vector();
+	var n = this.points.length - 1;
+
+	for (var i = 0; i < this.points.length; i++) {
+		var scale = Math.pow(1-t, n-i) * Math.pow(t, i) * SpeechBubble.Utils.binomialCoefficient(n, i);
+		var scaledVector = SpeechBubble.Utils.scaleVector(this.points[i], scale);
+
+		point = SpeechBubble.Utils.addVectors(point, scaledVector);
+	};
+
+	return point;
+};
+
 SpeechBubble.Utils = {};
+SpeechBubble.Utils.clamp = function(val, min, max) {
+	return Math.min(Math.max(val, min), max);
+};
+
+SpeechBubble.Utils.binomialCoefficient = function(n, k) {
+	// http://rosettacode.org/wiki/Evaluate_binomial_coefficients#JavaScript
+    var coeff = 1;
+    for (var i = n-k+1; i <= n; i++) coeff *= i;
+    for (var i = 1;     i <= k; i++) coeff /= i;
+    return coeff;
+};
+
+SpeechBubble.Vector = function(x, y) {
+	this.x = (typeof x != "undefined") ? x : 0;
+	this.y = (typeof y != "undefined") ? y : 0;
+};
+
 SpeechBubble.Utils.addVectors = function(a, b) {
 	return {x: a.x + b.x, y: a.y + b.y};
 };
@@ -220,6 +309,10 @@ SpeechBubble.Utils.subVectors = function(a, b) {
 
 SpeechBubble.Utils.scaleVector = function(vec, t) {
 	return {x: vec.x * t, y: vec.y * t};
+};
+
+SpeechBubble.Utils.vectorMagnitude = function(vec) {
+	return Math.sqrt(Math.pow(vec.x, 2) + Math.pow(vec.y, 2));
 };
 
 function Bounds(top, left, width, height){
