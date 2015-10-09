@@ -29,14 +29,13 @@
 		
 		// Setup SpeechBubble
 		speechBubble = new SpeechBubble(canvas.getContext("2d"));
-		speechBubble.setTarget(mouse);
 		readText();
 	}
 
 	function readText() {
 		// Read text from textbox and set SpeechBubble content
 		speechBubble.text = document.getElementById("text").value;
-		
+
 		draw();
 	}
 
@@ -44,6 +43,8 @@
 		// Clear Canvas
 		canvas.getContext("2d").clearRect(0, 0, width, height);
 
+		// Set tail location
+		speechBubble.setTargetPos(mouse.x, mouse.y);
 		// Draw SpeechBubble
 		speechBubble.draw();
 	}

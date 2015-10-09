@@ -12,7 +12,7 @@ function SpeechBubble(context) {
 	// -- Attributes
 	
 	// Panel
-	this.panelBounds = new Bounds(100, 100, 300, 100);
+	this.panelBounds = new SpeechBubble.Bounds(100, 100, 300, 100);
 	this.cornerRadius = 15;
 	this.padding = 0;
 	this.panelBorderColor = "#333";
@@ -43,10 +43,31 @@ function SpeechBubble(context) {
 	this.endTail.addPoint(new SpeechBubble.Vector());
 };
 
-SpeechBubble.TOP_SIDE = {name: "SPEECH_BUBBLE_TOP", normalVector: {x: 0, y: -1}, drawVector: {x: 1, y: 0}};
-SpeechBubble.BOTTOM_SIDE = {name: "SPEECH_BUBBLE_BOTTOM", normalVector: {x: 0, y: 1}, drawVector: {x: -1, y: 0}};
-SpeechBubble.LEFT_SIDE = {name: "SPEECH_BUBBLE_LEFT", normalVector: {x: -1, y: 0}, drawVector: {x: 0, y: -1}};
-SpeechBubble.RIGHT_SIDE = {name: "SPEECH_BUBBLE_RIGHT", normalVector: {x: 1, y: 0}, drawVector: {x: 0, y: 1}};
+SpeechBubble.Vector = function(x, y) {
+	this.x = (typeof x != "undefined") ? x : 0;
+	this.y = (typeof y != "undefined") ? y : 0;
+};
+
+SpeechBubble.Vector.prototype.add = function(b) {
+	return new SpeechBubble.Vector(this.x + b.x, this.y + b.y);
+};
+
+SpeechBubble.Vector.prototype.sub = function(b) {
+	return new SpeechBubble.Vector(this.x - b.x, this.y - b.y);
+};
+
+SpeechBubble.Vector.prototype.scale = function(t) {
+	return new SpeechBubble.Vector(this.x * t, this.y * t);
+};
+
+SpeechBubble.Vector.prototype.mag = function() {
+	return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+};
+
+SpeechBubble.TOP_SIDE = {name: "SPEECH_BUBBLE_TOP", normalVector: new SpeechBubble.Vector(0, -1), drawVector: new SpeechBubble.Vector(1, 0)};
+SpeechBubble.BOTTOM_SIDE = {name: "SPEECH_BUBBLE_BOTTOM", normalVector: new SpeechBubble.Vector(0, 1), drawVector: new SpeechBubble.Vector(-1, 0)};
+SpeechBubble.LEFT_SIDE = {name: "SPEECH_BUBBLE_LEFT", normalVector: new SpeechBubble.Vector(-1, 0), drawVector: new SpeechBubble.Vector(0, -1)};
+SpeechBubble.RIGHT_SIDE = {name: "SPEECH_BUBBLE_RIGHT", normalVector: new SpeechBubble.Vector(1, 0), drawVector: new SpeechBubble.Vector(0, 1)};
 
 SpeechBubble.ALIGN_LEFT = "SPEECH_BUBBLE_ALIGN_LEFT";
 SpeechBubble.ALIGN_RIGHT = "SPEECH_BUBBLE_ALIGN_RIGHT";
@@ -55,8 +76,8 @@ SpeechBubble.ALIGN_CENTER = "SPEECH_BUBBLE_ALIGN_CENTER";
 SpeechBubble.TAIL_STRAIGHT = "SPEECH_BUBBLE_TAIL_STRAIGHT";
 SpeechBubble.TAIL_CURVED = "SPEECH_BUBBLE_TAIL_CURVED";
 
-SpeechBubble.prototype.setTarget = function(target) {
-	this.target = target;
+SpeechBubble.prototype.setTargetPos = function(x, y) {
+	this.target = new SpeechBubble.Vector(x, y);
 };
 
 SpeechBubble.prototype.draw = function() {
@@ -153,9 +174,9 @@ SpeechBubble.prototype.drawText = function(lines) {
 
 SpeechBubble.prototype.drawPanelWall = function(panelSide, tailLocation, toX, toY) {
 	if (panelSide == tailLocation.side && !this.panelBounds.inBounds(this.target.x, this.target.y)) {
-		var tailBaseVector = SpeechBubble.Utils.scaleVector(panelSide.drawVector, this.tailBaseWidth);
-		var start = SpeechBubble.Utils.subVectors(tailLocation, tailBaseVector);
-		var end = SpeechBubble.Utils.addVectors(tailLocation, tailBaseVector);
+		var tailBaseVector = panelSide.drawVector.scale(this.tailBaseWidth);
+		var start = tailLocation.sub(tailBaseVector);
+		var end = tailLocation.add(tailBaseVector);
 
 		this.drawTail(panelSide, start, end);
 	}
@@ -165,27 +186,24 @@ SpeechBubble.prototype.drawPanelWall = function(panelSide, tailLocation, toX, to
 
 SpeechBubble.prototype.drawTail = function(panelSide, start, end) {
 
-	if (this.tailStyle == SpeechBubble.TAIL_STRAIGHT)
-	{
+	if (this.tailStyle == SpeechBubble.TAIL_STRAIGHT) {
 		this.context.lineTo(start.x, start.y);
 		this.context.lineTo(this.target.x, this.target.y);
 		this.context.lineTo(end.x, end.y);
 	}
-	else if (this.tailStyle == SpeechBubble.TAIL_CURVED)
-	{
-		var deltaVec = SpeechBubble.Utils.subVectors(this.target, this.getTailLocation());
+	else if (this.tailStyle == SpeechBubble.TAIL_CURVED) {
+		var deltaVec = this.target.sub(this.getTailLocation());
 		deltaVec.x = deltaVec.x * panelSide.normalVector.x;
 		deltaVec.y = deltaVec.y * panelSide.normalVector.y;
-		var tailHalfLength = Math.pow(SpeechBubble.Utils.vectorMagnitude(deltaVec), 0.7);
+		var tailHalfLength = Math.pow(deltaVec.mag(), 0.7);
 
-		// this.context.lineTo(start.x, start.y);
 		this.startTail.points[0] = start;
-		this.startTail.points[1] = SpeechBubble.Utils.addVectors(start, SpeechBubble.Utils.scaleVector(panelSide.normalVector, tailHalfLength));
+		this.startTail.points[1] = start.add(panelSide.normalVector.scale(tailHalfLength));
 		this.startTail.points[2] = this.target;
 		this.startTail.draw();
 
 		this.endTail.points[0] = this.target;
-		this.endTail.points[1] = SpeechBubble.Utils.addVectors(end, SpeechBubble.Utils.scaleVector(panelSide.normalVector, tailHalfLength));
+		this.endTail.points[1] = end.add(panelSide.normalVector.scale(tailHalfLength));
 		this.endTail.points[2] = end;
 		this.endTail.draw();
 	}
@@ -228,7 +246,10 @@ SpeechBubble.prototype.getTailLocation = function() {
 	x += boundsCenter.x;
 	y += boundsCenter.y;
 
-	return {x: x, y: y, side:side};
+	var location = new SpeechBubble.Vector(x, y);
+	location.side = side;
+
+	return location;
 };
 
 SpeechBubble.prototype.drawDebug = function() {
@@ -273,9 +294,9 @@ SpeechBubble.BezierCurve.prototype.getPoint = function(t) {
 
 	for (var i = 0; i < this.points.length; i++) {
 		var scale = Math.pow(1-t, n-i) * Math.pow(t, i) * SpeechBubble.Utils.binomialCoefficient(n, i);
-		var scaledVector = SpeechBubble.Utils.scaleVector(this.points[i], scale);
+		var scaledVector = this.points[i].scale(scale);
 
-		point = SpeechBubble.Utils.addVectors(point, scaledVector);
+		point = point.add(scaledVector);
 	};
 
 	return point;
@@ -294,28 +315,7 @@ SpeechBubble.Utils.binomialCoefficient = function(n, k) {
     return coeff;
 };
 
-SpeechBubble.Vector = function(x, y) {
-	this.x = (typeof x != "undefined") ? x : 0;
-	this.y = (typeof y != "undefined") ? y : 0;
-};
-
-SpeechBubble.Utils.addVectors = function(a, b) {
-	return {x: a.x + b.x, y: a.y + b.y};
-};
-
-SpeechBubble.Utils.subVectors = function(a, b) {
-	return {x: a.x - b.x, y: a.y - b.y};
-};
-
-SpeechBubble.Utils.scaleVector = function(vec, t) {
-	return {x: vec.x * t, y: vec.y * t};
-};
-
-SpeechBubble.Utils.vectorMagnitude = function(vec) {
-	return Math.sqrt(Math.pow(vec.x, 2) + Math.pow(vec.y, 2));
-};
-
-function Bounds(top, left, width, height){
+SpeechBubble.Bounds = function(top, left, width, height){
 	this.top = (top) ? top : 0;
 	this.left = (left) ? left : 0;
 	this.width = (width) ? width : 0;
@@ -325,28 +325,28 @@ function Bounds(top, left, width, height){
 	this.bottom = this.top + this.height;
 };
 
-Bounds.prototype.move = function(left, top) {
+SpeechBubble.Bounds.prototype.move = function(left, top) {
 	this.top = top;
 	this.left = left;
 	this.right = this.left + this.width;
 	this.bottom = this.top + this.height;
 };
 
-Bounds.prototype.setSize = function(width, height) {
+SpeechBubble.Bounds.prototype.setSize = function(width, height) {
 	this.width = width;
 	this.height = height;
 	this.right = this.left + this.width;
 	this.bottom = this.top + this.height;
 };
 
-Bounds.prototype.getCenter = function() {
+SpeechBubble.Bounds.prototype.getCenter = function() {
 	return {
 		x: this.left + this.width/2,
 		y: this.top + this.height/2
 	}
 };
 
-Bounds.prototype.inBounds = function(x, y) {
+SpeechBubble.Bounds.prototype.inBounds = function(x, y) {
 	return (x > this.left &&
 		x < this.left + this.width &&
 		y > this.top &&
@@ -354,7 +354,7 @@ Bounds.prototype.inBounds = function(x, y) {
 };
 
 // Give a point in global space, return point in bound space
-Bounds.prototype.relativePoint = function(x, y) {
+SpeechBubble.Bounds.prototype.relativePoint = function(x, y) {
 	return {
 		x: x - this.left,
 		y: y - this.top
