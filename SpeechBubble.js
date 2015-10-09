@@ -15,8 +15,9 @@ function SpeechBubble(context) {
 	this.panelBounds = new SpeechBubble.Bounds(100, 100, 300, 100);
 	this.cornerRadius = 15;
 	this.padding = 0;
+	this.panelBorderWidth = 2;
 	this.panelBorderColor = "#333";
-	this.panelFillColor = "rgba(0,0,0,0)";
+	this.panelFillColor = "#FFF";
 
 	// Tail
 	this.tailBaseWidth = 10;
@@ -91,6 +92,7 @@ SpeechBubble.prototype.draw = function() {
 
 	var cornerAngle = 1.5 * Math.PI;
 
+	this.context.lineWidth = this.panelBorderWidth;
 	this.drawPanelWall(SpeechBubble.TOP_SIDE, tailLocation, this.panelBounds.right - this.cornerRadius, this.panelBounds.top);
 	this.drawPanelCorners(this.panelBounds.right - this.cornerRadius, this.panelBounds.top + this.cornerRadius, cornerAngle, cornerAngle += 0.5 * Math.PI);
 

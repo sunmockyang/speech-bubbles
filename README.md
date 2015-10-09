@@ -7,6 +7,7 @@ A library to draw dynamic speech bubbles in canvas.
 - Panel size
 - Panel padding
 - Rounded corners + corner radius
+- Panel border width
 - Panel fill colour
 - Panel border colour
 
