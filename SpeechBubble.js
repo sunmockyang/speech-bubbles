@@ -74,7 +74,9 @@ SpeechBubble.TAIL_STRAIGHT = "SPEECH_BUBBLE_TAIL_STRAIGHT";
 SpeechBubble.TAIL_CURVED = "SPEECH_BUBBLE_TAIL_CURVED";
 
 SpeechBubble.OVERFLOW_NONE = "SPEECH_BUBBLE_OVERFLOW_NONE";
+SpeechBubble.OVERFLOW_ELLIPSIS = "SPEECH_BUBBLE_OVERFLOW_ELLIPSIS";
 SpeechBubble.OVERFLOW_VERTICAL_STRETCH = "SPEECH_BUBBLE_OVERFLOW_VERTICAL_STRETCH";
+SpeechBubble.OVERFLOW_HIDDEN = "SPEECH_BUBBLE_OVERFLOW_HIDDEN";
 
 SpeechBubble.prototype.setTargetPos = function(x, y) {
 	this.target = new SpeechBubble.Vector(x, y);
@@ -87,7 +89,7 @@ SpeechBubble.prototype.draw = function() {
 	{
 		this.panelBounds.setSize(this.panelBounds.width, formattedText.height);
 	}
-	else // OVERFLOW_NONE
+	else // OVERFLOW_NONE, OVERFLOW_HIDDEN, OVERFLOW_ELLIPSIS
 	{
 		// Don't reset the size
 	}
@@ -139,7 +141,7 @@ SpeechBubble.prototype.formatText = function() {
 
 	var lines = [words[0]];
 	var lineLength = this.context.measureText(words[0]).width;
-	var height = this.cornerRadius * 2 + this.padding * 2;
+	var height = this.cornerRadius * 2 + this.padding * 2 + this.fontSize;
 
 	for (var i = 1; i < words.length; i++) {
 		var lineNum = lines.length - 1;
@@ -151,12 +153,22 @@ SpeechBubble.prototype.formatText = function() {
 			lineLength += wordLength;
 		}
 		else {
-			lines.push(words[i]);
-			lineLength = this.context.measureText(words[i]).width;
+			// Unless overflow is vertical stretch/none, don't draw rest of the text
+			// if it's out of bounds.
+			if (this.overflow == SpeechBubble.OVERFLOW_VERTICAL_STRETCH ||
+				this.overflow == SpeechBubble.OVERFLOW_NONE ||
+				this.panelBounds.height > height + this.fontSize + this.lineSpacing)
+			{
+				lines.push(words[i]);
+				lineLength = this.context.measureText(words[i]).width;
+				height += this.fontSize + this.lineSpacing;
+			}
+			else
+			{
+				break;
+			}
 		}
 	};
-
-	height += (this.fontSize * lines.length) + (this.lineSpacing * (lines.length - 1));
 
 	return {
 		height: height,
