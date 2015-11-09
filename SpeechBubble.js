@@ -142,10 +142,21 @@ SpeechBubble.prototype.formatText = function() {
 	var lines = [words[0]];
 	var lineLength = this.context.measureText(words[0]).width;
 	var height = this.cornerRadius * 2 + this.padding * 2 + this.fontSize;
+	var ellipsisLength = this.context.measureText("...").width;
 
 	for (var i = 1; i < words.length; i++) {
 		var lineNum = lines.length - 1;
 		var wordLength = this.context.measureText(" " + words[i]).width;
+
+		// If the overflow is ellipsis and adding a new word + ellipsis will overflow
+		// and it's the last possible line in the panel, then add ellipsis
+		if (this.overflow == SpeechBubble.OVERFLOW_ELLIPSIS &&
+			lineLength + wordLength + ellipsisLength > this.getSafeSpace().width &&
+			this.panelBounds.height < height + this.fontSize + this.lineSpacing)
+		{
+			lines[lineNum] += "...";
+			lineLength += ellipsisLength;
+		}
 
 		// If the current line + the new word fits within the safe space
 		if (lineLength + wordLength < this.getSafeSpace().width) {
@@ -153,18 +164,16 @@ SpeechBubble.prototype.formatText = function() {
 			lineLength += wordLength;
 		}
 		else {
-			// Unless overflow is vertical stretch/none, don't draw rest of the text
-			// if it's out of bounds.
+			// Add the next line of text as long as  overflow is vertical stretch/none
+			// or in bounds.
 			if (this.overflow == SpeechBubble.OVERFLOW_VERTICAL_STRETCH ||
 				this.overflow == SpeechBubble.OVERFLOW_NONE ||
-				this.panelBounds.height > height + this.fontSize + this.lineSpacing)
-			{
+				this.panelBounds.height > height + this.fontSize + this.lineSpacing) {
 				lines.push(words[i]);
 				lineLength = this.context.measureText(words[i]).width;
 				height += this.fontSize + this.lineSpacing;
 			}
-			else
-			{
+			else {
 				break;
 			}
 		}

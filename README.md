@@ -23,6 +23,7 @@ A library to draw dynamic speech bubbles in canvas.
 - Font colour
 - Line spacing
 - Text align
+- Text overflow
 
 ## Future plans
 - Add different corner shapes
