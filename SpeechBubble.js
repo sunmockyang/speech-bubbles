@@ -1,11 +1,6 @@
 // SpeechBubble.js
 // Sunmock Yang, September 2015
 
-/*
-Future plans
-- Rounded tail
- */
-
 function SpeechBubble(context) {
 	this.context = context;
 
@@ -13,8 +8,8 @@ function SpeechBubble(context) {
 	
 	// Panel
 	this.panelBounds = new SpeechBubble.Bounds(100, 100, 300, 100);
-	this.cornerRadius = 15;
-	this.padding = 0;
+	this.cornerRadius = 10;
+	this.padding = 10;
 	this.panelBorderWidth = 2;
 	this.panelBorderColor = "#333";
 	this.panelFillColor = "#FFF";
@@ -31,6 +26,7 @@ function SpeechBubble(context) {
 	this.fontSize = 20;
 	this.fontColor = "#900";
 	this.textAlign = SpeechBubble.ALIGN_LEFT;
+	this.overflow = SpeechBubble.OVERFLOW_VERTICAL_STRETCH;
 
 	// Utility
 	this.startTail = new SpeechBubble.BezierCurve(context, 20);
@@ -77,13 +73,24 @@ SpeechBubble.ALIGN_CENTER = "SPEECH_BUBBLE_ALIGN_CENTER";
 SpeechBubble.TAIL_STRAIGHT = "SPEECH_BUBBLE_TAIL_STRAIGHT";
 SpeechBubble.TAIL_CURVED = "SPEECH_BUBBLE_TAIL_CURVED";
 
+SpeechBubble.OVERFLOW_NONE = "SPEECH_BUBBLE_OVERFLOW_NONE";
+SpeechBubble.OVERFLOW_VERTICAL_STRETCH = "SPEECH_BUBBLE_OVERFLOW_VERTICAL_STRETCH";
+
 SpeechBubble.prototype.setTargetPos = function(x, y) {
 	this.target = new SpeechBubble.Vector(x, y);
 };
 
 SpeechBubble.prototype.draw = function() {
 	var formattedText = this.formatText();
-	this.panelBounds.setSize(this.panelBounds.width, formattedText.height);
+
+	if (this.overflow == SpeechBubble.OVERFLOW_VERTICAL_STRETCH)
+	{
+		this.panelBounds.setSize(this.panelBounds.width, formattedText.height);
+	}
+	else // OVERFLOW_NONE
+	{
+		// Don't reset the size
+	}
 
 	var tailLocation = this.getTailLocation();
 
@@ -117,6 +124,11 @@ SpeechBubble.prototype.draw = function() {
 	// this.drawDebug();
 };
 
+// Takes the entire input text string and:
+// - Measures the text using the set font
+// - Returns an array of strings using the input text where
+//   each element is a line that will fit within the set bounds
+// - Also returns the height of the text that was formatted.
 SpeechBubble.prototype.formatText = function() {
 	var words = this.text.split(" ");
 
@@ -126,28 +138,40 @@ SpeechBubble.prototype.formatText = function() {
 	this.context.font = this.fontSize + "px " + this.font;
 
 	var lines = [words[0]];
-	var lineLength = this.padding * 2 + this.cornerRadius * 2 + this.context.measureText(words[0]).width;
+	var lineLength = this.context.measureText(words[0]).width;
+	var height = this.cornerRadius * 2 + this.padding * 2;
 
 	for (var i = 1; i < words.length; i++) {
 		var lineNum = lines.length - 1;
 		var wordLength = this.context.measureText(" " + words[i]).width;
 
-		if (lineLength + wordLength < this.panelBounds.width - this.padding * 2) {
+		// If the current line + the new word fits within the safe space
+		if (lineLength + wordLength < this.getSafeSpace().width) {
 			lines[lineNum] += " " + words[i];
 			lineLength += wordLength;
 		}
 		else {
 			lines.push(words[i]);
-			lineLength = this.padding * 2 + this.cornerRadius * 2 + this.context.measureText(words[i]).width;
+			lineLength = this.context.measureText(words[i]).width;
 		}
 	};
 
-	var height = this.padding * 2 + this.cornerRadius * 2 + this.fontSize * lines.length + this.lineSpacing * (lines.length - 1);
+	height += (this.fontSize * lines.length) + (this.lineSpacing * (lines.length - 1));
 
 	return {
 		height: height,
 		lines: lines
 	};
+};
+
+// Returns a bound that depicts the area the text will appear in
+SpeechBubble.prototype.getSafeSpace = function() {
+	var left = this.panelBounds.left + this.padding + this.cornerRadius;
+	var top = this.panelBounds.top + this.padding + this.cornerRadius;
+	var width = this.panelBounds.width - this.padding * 2 - this.cornerRadius * 2;
+	var height = this.panelBounds.height - this.padding * 2 - this.cornerRadius * 2;
+
+	return new SpeechBubble.Bounds(left, top, width, height);
 };
 
 SpeechBubble.prototype.drawText = function(lines) {
@@ -169,7 +193,7 @@ SpeechBubble.prototype.drawText = function(lines) {
 			break;
 		}
 
-		this.context.fillText(lines[i], horizontalOffset, this.panelBounds.top + this.padding + verticalOffset);
+		this.context.fillText(lines[i], horizontalOffset, this.panelBounds.top + verticalOffset);
 		verticalOffset += this.fontSize + this.lineSpacing;
 	};
 };
@@ -255,6 +279,9 @@ SpeechBubble.prototype.getTailLocation = function() {
 };
 
 SpeechBubble.prototype.drawDebug = function() {
+	this.context.strokeStyle = "#00F";
+	this.context.strokeRect(this.getSafeSpace().left, this.getSafeSpace().top, this.getSafeSpace().width, this.getSafeSpace().height);
+
 	this.context.strokeStyle = "#F00";
 	this.context.beginPath();
 	this.context.moveTo(this.panelBounds.getCenter().x, this.panelBounds.getCenter().y);
@@ -269,7 +296,6 @@ SpeechBubble.prototype.drawDebug = function() {
 };
 
 SpeechBubble.prototype.debugSquare = function(point) {
-	this.context.fillStyle = "#F00";
 	this.context.fillRect(point.x - 2, point.y - 2, 5, 5);
 };
 
