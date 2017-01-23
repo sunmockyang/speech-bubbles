@@ -1,6 +1,8 @@
 # speech-bubbles
 A library to draw dynamic speech bubbles in canvas.
 
+Check out the [demo](http://sunmockyang.github.io/speech-bubbles/demo/)
+
 ## Customizations
 
 ### Panel
